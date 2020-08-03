@@ -42,7 +42,10 @@ class Regression(EvaluatorBase):
         self._loss = self._criterion(mo,gt)
 
     def evaluate(self):
+        results = OrderedDict()
+        results['loss'] = self._loss
         print(f'=> result\n * loss: {self._loss:.2f}\n')
+        return results
 
 
 @EVALUATOR_REGISTRY.register()

@@ -167,7 +167,7 @@ class DAELReg(TrainerXU):
         input_x2 = batch_x['img2']
         label_x = batch_x['label']
         domain_x = batch_x['domain']
-        input_u = batch_u['img']
+        input_u = batch_u['img']fff
         input_u2 = batch_u['img2']
 
         label_x = torch.cat([torch.unsqueeze(x, 1) for x in label_x], 1) #Stack list of tensors

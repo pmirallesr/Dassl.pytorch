@@ -186,7 +186,7 @@ class DAELReg(TrainerXU):
         input_u = batch_u['img']
         input_u2 = batch_u['img2']
 
-        label_x = create_onehot(label_x, self.num_classes)
+        label_x = torch.cat([torch.unsqueeze(x, 1) for x in label_x], 1) #Stack list of tensors
 
         input_x = input_x.to(self.device)
         input_x2 = input_x2.to(self.device)

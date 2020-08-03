@@ -6,9 +6,6 @@ from dassl.utils import listdir_nohidden
 from ..build import DATASET_REGISTRY
 from ..base_dataset import Datum, DatasetBase
 
-#Possible domains
-labelled_domains = ['base_small','shapes','colors','textures','blurred','shapes2','colors2','textures2','blurred2']
-unlabelled_domains = ['real_small']
 
 ep_length = {f'episode_{i:2d}':501 for i in range(21)}
 ep_length['episode_09'] = 448
@@ -18,16 +15,13 @@ for i in ep_length.values():
     total_data += i
 
 def read_duckie_image_list(im_dir, domain, n, n_repeat=None):
-    assert domain in labelled_domains + unlabelled_domains
     items = []
     total_imgs = 0
-    labelled = domain in labelled_domains
     for file_name in sorted(listdir_nohidden(im_dir)):
         if file_name.startswith('episode_'):
             n_ep = int(file_name[-2:])
             ep_dir = osp.join(im_dir, file_name)
-            if labelled:
-                annotations_filename = osp.join(ep_dir,'annotation.txt')
+            annotations_filename = osp.join(ep_dir,'annotation.txt')
             for n_im, imname in enumerate(sorted(listdir_nohidden(ep_dir))):
                 if n_im + total_imgs >= n: # If all required images have been processed
                     if n_repeat is not None:
@@ -38,18 +32,16 @@ def read_duckie_image_list(im_dir, domain, n, n_repeat=None):
                     continue
                 impath = osp.join(ep_dir, imname)
                 # Retrieve label
-                if labelled and imname_noext.startswith("image"):
-                    im_number = int(imname_noext.split('_')[-1]) #im_number better than n_im.
-                    ann_line = linecache.getline(annotations_filename, im_number + 1)[:-1] # Line N corresponds to image N-1, clean newline
-                    # getline returns '' when it fails to find the file
-                    if ann_line == '':
-                        raise ValueError(f"The file {annotations_filename} does not exist")
-                    label_texts = ann_line.split(' ')[1:]
-                    assert len(label_texts) == 2
-                    labels = (float(label_texts[0]), float(label_texts[1]))
-                    items.append((impath, labels))
-                else:
-                    items.append((impath, None))
+                im_number = int(imname_noext.split('_')[-1]) #im_number better than n_im.
+                # Line N corresponds to image N-1, clean newline
+                ann_line = linecache.getline(annotations_filename, im_number + 1)[:-1]
+                # getline returns '' when it fails to find the file
+                if ann_line == '':
+                    raise ValueError(f"The file {annotations_filename} does not exist")
+                label_texts = ann_line.split(' ')[1:]
+                assert len(label_texts) == 2
+                labels = (float(label_texts[0]), float(label_texts[1]))
+                items.append((impath, labels))
             total_imgs += ep_length[f'episode_{n_ep:2d}']
     if n_repeat is not None:
         items *= n_repeat

@@ -9,4 +9,4 @@ DATASET:
 
 MODEL:
   BACKBONE:
-    NAME: 'cnn_digit5_m3sda'
+    NAME: 'cnn_duckieS_m3sda'

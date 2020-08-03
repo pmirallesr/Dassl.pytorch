@@ -131,7 +131,7 @@ class DataManager:
         # Attributes
         self._num_classes = dataset.num_classes
         self._num_source_domains = len(cfg.DATASET.SOURCE_DOMAINS)
-#         self._lab2cname = dataset.lab2cname
+        self._lab2cname = dataset.lab2cname
 
         # Dataset and data-loaders
         self.dataset = dataset
@@ -151,9 +151,9 @@ class DataManager:
     def num_source_domains(self):
         return self._num_source_domains
 
-#     @property
-#     def lab2cname(self):
-#         return self._lab2cname
+    @property
+    def lab2cname(self):
+        return self._lab2cname
 
     def show_dataset_summary(self, cfg):
         print('***** Dataset statistics *****')

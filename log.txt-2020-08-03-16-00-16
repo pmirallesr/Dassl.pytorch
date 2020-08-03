@@ -1,0 +1,214 @@
+***************
+** Arguments **
+***************
+backbone: 
+config_file: configs/trainers/da/dael/duckie.yaml
+dataset_config_file: configs/datasets/da/duckie.yaml
+eval_only: False
+head: 
+load_epoch: None
+model_dir: 
+no_train: False
+opts: []
+output_dir: /home/pmirallesr/Documents/daelOG/
+resume: 
+root: /home/pmirallesr/Documents/datasets/
+seed: -1
+source_domains: ['base_small', 'colors', 'shapes', 'textures', 'blurred', 'colors2', 'textures2', 'shapes2', 'blurred2']
+target_domains: ['real_small']
+trainer: DAELReg
+transforms: None
+************
+** Config **
+************
+DATALOADER:
+  K_TRANSFORMS: 1
+  NUM_WORKERS: 4
+  TEST:
+    BATCH_SIZE: 32
+    SAMPLER: SequentialSampler
+  TRAIN_U:
+    BATCH_SIZE: 8
+    N_DOMAIN: 0
+    SAME_AS_X: False
+    SAMPLER: RandomSampler
+  TRAIN_X:
+    BATCH_SIZE: 32
+    N_DOMAIN: 0
+    SAMPLER: RandomDomainSampler
+DATASET:
+  NAME: Duckie
+  NUM_LABELED: 250
+  ROOT: /home/pmirallesr/Documents/datasets/
+  SOURCE_DOMAINS: ['base_small', 'colors', 'shapes', 'textures', 'blurred', 'colors2', 'textures2', 'shapes2', 'blurred2']
+  STL10_FOLD: -1
+  TARGET_DOMAINS: ['real_small']
+  VAL_PERCENT: 0.1
+INPUT:
+  CROP_PADDING: 4
+  CUTOUT_LEN: 16
+  CUTOUT_N: 1
+  GN_MEAN: 0.0
+  GN_STD: 0.15
+  NO_TRANSFORM: False
+  PIXEL_MEAN: [0.5, 0.5, 0.5]
+  PIXEL_STD: [0.5, 0.5, 0.5]
+  RANDAUGMENT_M: 10
+  RANDAUGMENT_N: 2
+  SIZE: (60, 80)
+  TRANSFORMS: ('normalize',)
+MODEL:
+  BACKBONE:
+    NAME: cnn_duckieS_m3sda
+    PRETRAINED: True
+  HEAD:
+    ACTIVATION: relu
+    BN: True
+    DROPOUT: 0.0
+    HIDDEN_LAYERS: ()
+    NAME: 
+  INIT_WEIGHTS: 
+OPTIM:
+  ADAM_BETA1: 0.9
+  ADAM_BETA2: 0.99
+  BASE_LR_MULT: 0.1
+  GAMMA: 0.1
+  LR: 0.05
+  LR_SCHEDULER: cosine
+  MAX_EPOCH: 30
+  MOMENTUM: 0.9
+  NAME: sgd
+  NEW_LAYERS: ()
+  RMSPROP_ALPHA: 0.99
+  SGD_DAMPNING: 0
+  SGD_NESTEROV: False
+  STAGED_LR: False
+  STEPSIZE: (30,)
+  WEIGHT_DECAY: 0.0005
+OUTPUT_DIR: /home/pmirallesr/Documents/daelOG/
+RESUME: 
+SEED: -1
+TEST:
+  COMPUTE_CMAT: False
+  EVALUATOR: Classification
+  EVAL_FREQ: 1
+  NO_TEST: False
+  PER_CLASS_RESULT: False
+  SPLIT: test
+TRAIN:
+  CHECKPOINT_FREQ: 0
+  COUNT_ITER: train_x
+  PRINT_FREQ: 10
+TRAINER:
+  CG:
+    ALPHA_D: 0.5
+    ALPHA_F: 0.5
+    EPS_D: 1.0
+    EPS_F: 1.0
+  DAEL:
+    CONF_THRE: 0.95
+    STRONG_TRANSFORMS: ('randaugment2', 'normalize')
+    WEIGHT_U: 0.5
+  DAELReg:
+    CONF_THRE: 0.95
+    STRONG_TRANSFORMS: ()
+    WEIGHT_U: 0.5
+  DDAIG:
+    ALPHA: 0.5
+    CLAMP: False
+    CLAMP_MAX: 1.0
+    CLAMP_MIN: -1.0
+    G_ARCH: 
+    LMDA: 0.3
+    WARMUP: 0
+  ENTMIN:
+    LMDA: 0.001
+  FIXMATCH:
+    CONF_THRE: 0.95
+    STRONG_TRANSFORMS: ()
+    WEIGHT_U: 1.0
+  M3SDA:
+    LMDA: 0.5
+    N_STEP_F: 4
+  MCD:
+    N_STEP_F: 4
+  MEANTEA:
+    EMA_ALPHA: 0.999
+    WEIGHT_U: 1.0
+  MIXMATCH:
+    MIXUP_BETA: 0.75
+    RAMPUP: 20000
+    TEMP: 2.0
+    WEIGHT_U: 100.0
+  MME:
+    LMDA: 0.1
+  NAME: DAELReg
+  SE:
+    CONF_THRE: 0.95
+    EMA_ALPHA: 0.999
+    RAMPUP: 300
+USE_CUDA: True
+VERBOSE: True
+VERSION: 1
+Collecting env info ...
+** System info **
+PyTorch version: 1.6.0
+Is debug build: No
+CUDA used to build PyTorch: None
+
+OS: Ubuntu 20.04 LTS
+GCC version: (Ubuntu 9.3.0-10ubuntu2) 9.3.0
+CMake version: version 3.16.3
+
+Python version: 3.7
+Is CUDA available: No
+CUDA runtime version: No CUDA
+GPU models and configuration: No CUDA
+Nvidia driver version: No CUDA
+cuDNN version: No CUDA
+
+Versions of relevant libraries:
+[pip3] numpy==1.19.1
+[pip3] torch==1.6.0
+[pip3] torchvision==0.7.0
+[conda] blas                      1.0                         mkl  
+[conda] cpuonly                   1.0                           0    pytorch
+[conda] mkl                       2020.1                      217  
+[conda] mkl-service               2.3.0            py37he904b0f_0  
+[conda] mkl_fft                   1.1.0            py37h23d657b_0  
+[conda] mkl_random                1.1.1            py37h0573a6f_0  
+[conda] numpy                     1.19.1           py37hbc911f0_0  
+[conda] numpy-base                1.19.1           py37hfa32c7d_0  
+[conda] pytorch                   1.6.0               py3.7_cpu_0  [cpuonly]  pytorch
+[conda] torchvision               0.7.0                  py37_cpu  [cpuonly]  pytorch
+        Pillow (7.2.0)
+
+Loading trainer: DAELReg
+Building transform_train
++ resize to 60x80
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+Building transform_train
++ resize to 60x80
++ randaugment2 (n=2)
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+Loading dataset: Duckie
+* Using custom transform for training
+Building transform_test
++ resize to 60x80
++ to torch tensor of range [0, 1]
++ normalization (mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+***** Dataset statistics *****
+  Dataset: Duckie
+  Source domains: ['base_small', 'colors', 'shapes', 'textures', 'blurred', 'colors2', 'textures2', 'shapes2', 'blurred2']
+  Target domains: ['real_small']
+  # classes: 2
+  # train_x: 54,977
+  # train_u: 500
+  # test: 500
+Building F
+Uncaught exception. Entering post mortem debugging
+Running 'cont' or 'step' will restart the program
+(Pdb) Post mortem debugger finished. The tools/train.py will be restarted
+(Pdb) 

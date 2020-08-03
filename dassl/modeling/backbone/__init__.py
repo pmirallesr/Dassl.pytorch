@@ -18,3 +18,4 @@ from .shufflenetv2 import (
 from .cnn_digitsingle import cnn_digitsingle
 from .preact_resnet18 import preact_resnet18
 from .cnn_digit5_m3sda import cnn_digit5_m3sda
+from .cnn_duckieS_m3sda import cnn_duckieS_m3sda

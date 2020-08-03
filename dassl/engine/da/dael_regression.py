@@ -124,7 +124,7 @@ class DAELReg(TrainerXU):
 
             # Learning expert
             pred_xi = self.E(i, feat_xi)
-            loss_x += self.e_crit(pred_xi, label_xi)
+            loss_x += ((pred_xi - label_xi)**2).sum(1).mean()
             expert_label_xi = pred_xi.detach()
 
             # Consistency regularization
@@ -135,7 +135,7 @@ class DAELReg(TrainerXU):
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
             cr_pred = cr_pred.mean(1)
-            loss_cr += self.cr_crit(cr_pred, expert_label_xi)
+            loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
@@ -154,7 +154,7 @@ class DAELReg(TrainerXU):
             'loss_x': loss_x.item(),
             'acc_x': acc_x,
             'loss_cr': loss_cr.item(),
-            'loss_u': loss_u.item()
+#             'loss_u': loss_u.item()
         }
 
         if (self.batch_idx + 1) == self.num_batches:

@@ -18,11 +18,11 @@ class Experts(nn.Module):
         self.linears = nn.ModuleList(
             [nn.Linear(fdim, num_classes) for _ in range(n_source)]
         )
-        self.softmax = nn.Softmax(dim=1)
+        self.sigm = nn.Sigmoid()
 
     def forward(self, i, x):
         x = self.linears[i](x)
-        x = self.softmax(x)
+        x = self.sigm(x)
         return x
 
 
@@ -33,7 +33,7 @@ class DAELReg(TrainerXU):
     https://arxiv.org/abs/2003.07325.
     """
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, e_crit=torch.nn.MSELoss(), cr_crit = torch.nn.MSELoss()):
         super().__init__(cfg)
         n_domain = cfg.DATALOADER.TRAIN_X.N_DOMAIN
         batch_size = cfg.DATALOADER.TRAIN_X.BATCH_SIZE
@@ -44,6 +44,8 @@ class DAELReg(TrainerXU):
 
         self.weight_u = cfg.TRAINER.DAEL.WEIGHT_U
         self.conf_thre = cfg.TRAINER.DAEL.CONF_THRE
+        self.e_crit = e_crit
+        self.cr_crit= cr_crit
 
     def check_cfg(self, cfg):
         assert cfg.DATALOADER.TRAIN_X.SAMPLER == 'RandomDomainSampler'
@@ -103,17 +105,9 @@ class DAELReg(TrainerXU):
                 pred_uk = pred_uk.unsqueeze(1)
                 pred_u.append(pred_uk)
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
-            # Get the highest probability and index (label) for each expert
-            experts_max_p, experts_max_idx = pred_u.max(2) # (B, K)
-            # Get the most confident expert
-            max_expert_p, max_expert_idx = experts_max_p.max(1) # (B)
-            pseudo_label_u = []
-            for i, experts_label in zip(max_expert_idx, experts_max_idx):
-                pseudo_label_u.append(experts_label[i])
-            pseudo_label_u = torch.stack(pseudo_label_u, 0)
-            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)
-            pseudo_label_u = pseudo_label_u.to(self.device)
-            label_u_mask = (max_expert_p >= self.conf_thre).float()
+            # Get the median prediction for each action
+            pred_u = pred_u.median(1).values
+            #Note that there is no leading expert, we just take the median of all predictions
 
         loss_x = 0
         loss_cr = 0
@@ -121,7 +115,7 @@ class DAELReg(TrainerXU):
 
         feat_x = [self.F(x) for x in input_x]
         feat_x2 = [self.F(x) for x in input_x2]
-        feat_u2 = self.F(input_u2)
+#         feat_u2 = self.F(input_u2)
 
         for feat_xi, feat_x2i, label_xi, i in zip(
             feat_x, feat_x2, label_x, domain_x
@@ -130,10 +124,8 @@ class DAELReg(TrainerXU):
 
             # Learning expert
             pred_xi = self.E(i, feat_xi)
-            loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
+            loss_x += self.e_crit(pred_xi, label_xi)
             expert_label_xi = pred_xi.detach()
-            acc_x += compute_accuracy(pred_xi.detach(),
-                                      label_xi.max(1)[1])[0].item()
 
             # Consistency regularization
             cr_pred = []
@@ -143,27 +135,19 @@ class DAELReg(TrainerXU):
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
             cr_pred = cr_pred.mean(1)
-            loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()
+            loss_cr += cr_crit(cr_pred, expert_label_xi)
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
         acc_x /= self.n_domain
 
-        # Unsupervised loss
-        pred_u = []
-        for k in range(self.dm.num_source_domains):
-            pred_uk = self.E(k, feat_u2)
-            pred_uk = pred_uk.unsqueeze(1)
-            pred_u.append(pred_uk)
-        pred_u = torch.cat(pred_u, 1)
-        pred_u = pred_u.mean(1)
-        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
-        loss_u = (l_u * label_u_mask).mean()
+        # Unsupervised loss -> None yet
+        # Pending: provide a means of establishing a lead expert so that loss can be calculated
 
         loss = 0
         loss += loss_x
         loss += loss_cr
-        loss += loss_u * self.weight_u
+#         loss += loss_u * self.weight_u
         self.model_backward_and_update(loss)
 
         loss_summary = {
@@ -193,6 +177,15 @@ class DAELReg(TrainerXU):
         label_x = label_x.to(self.device)
         input_u = input_u.to(self.device)
         input_u2 = input_u2.to(self.device)
+
+        return input_x, input_x2, label_x, domain_x, input_u, input_u2
+    
+    def parse_batch_test(self, batch):
+        input = batch['img']
+        label = batch['label']
+        label = torch.cat([torch.unsqueeze(x, 1) for x in label], 1) #Stack list of tensors
+        input = input.to(self.device)
+        label = label.to(self.device)
 
         return input_x, input_x2, label_x, domain_x, input_u, input_u2
 

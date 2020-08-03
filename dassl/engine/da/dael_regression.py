@@ -153,7 +153,7 @@ class DAELReg(TrainerXU):
 
         loss_summary = {
             'loss_x': loss_x.item(),
-            'acc_x': acc_x,
+#             'acc_x': acc_x,
             'loss_cr': loss_cr.item(),
 #             'loss_u': loss_u.item()
         }

@@ -111,7 +111,7 @@ class DAELReg(TrainerXU):
 
         loss_x = 0
         loss_cr = 0
-        acc_x = 0
+#         acc_x = 0
 
         feat_x = [self.F(x) for x in input_x]
         feat_x2 = [self.F(x) for x in input_x2]
@@ -139,7 +139,7 @@ class DAELReg(TrainerXU):
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
-        acc_x /= self.n_domain
+#         acc_x /= self.n_domain
 
         # Unsupervised loss -> None yet
         # Pending: provide a means of establishing a lead expert so that loss can be calculated
@@ -148,7 +148,7 @@ class DAELReg(TrainerXU):
         loss = 0
         loss += loss_x
         loss += loss_cr
-        loss += loss_u * self.weight_u
+#         loss += loss_u * self.weight_u
         self.model_backward_and_update(loss)
 
         loss_summary = {

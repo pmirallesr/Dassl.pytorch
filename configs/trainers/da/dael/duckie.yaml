@@ -15,6 +15,9 @@ OPTIM:
   MAX_EPOCH: 30
   LR_SCHEDULER: 'cosine'
 
+TEST:
+  EVALUATOR: 'Regression' 
+
 TRAINER:
   DAEL:
     STRONG_TRANSFORMS: ['randaugment2', 'normalize']

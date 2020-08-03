@@ -33,7 +33,7 @@ class DAELReg(TrainerXU):
     https://arxiv.org/abs/2003.07325.
     """
 
-    def __init__(self, cfg, e_crit=torch.nn.MSELoss(), cr_crit = torch.nn.MSELoss()):
+    def __init__(self, cfg):
         super().__init__(cfg)
         n_domain = cfg.DATALOADER.TRAIN_X.N_DOMAIN
         batch_size = cfg.DATALOADER.TRAIN_X.BATCH_SIZE
@@ -44,8 +44,8 @@ class DAELReg(TrainerXU):
 
         self.weight_u = cfg.TRAINER.DAEL.WEIGHT_U
         self.conf_thre = cfg.TRAINER.DAEL.CONF_THRE
-        self.e_crit = e_crit
-        self.cr_crit= cr_crit
+#         self.e_crit = e_crit
+#         self.cr_crit= cr_crit
 
     def check_cfg(self, cfg):
         assert cfg.DATALOADER.TRAIN_X.SAMPLER == 'RandomDomainSampler'
@@ -143,11 +143,12 @@ class DAELReg(TrainerXU):
 
         # Unsupervised loss -> None yet
         # Pending: provide a means of establishing a lead expert so that loss can be calculated
+        
 
         loss = 0
         loss += loss_x
         loss += loss_cr
-#         loss += loss_u * self.weight_u
+        loss += loss_u * self.weight_u
         self.model_backward_and_update(loss)
 
         loss_summary = {
@@ -187,7 +188,7 @@ class DAELReg(TrainerXU):
         input = input.to(self.device)
         label = label.to(self.device)
 
-        return input_x, input_x2, label_x, domain_x, input_u, input_u2
+        return input, label
 
     def model_inference(self, input):
         f = self.F(input)

@@ -135,7 +135,7 @@ class DAELReg(TrainerXU):
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
             cr_pred = cr_pred.mean(1)
-            loss_cr += cr_crit(cr_pred, expert_label_xi)
+            loss_cr += self.cr_crit(cr_pred, expert_label_xi)
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain

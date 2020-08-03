@@ -1,10 +1,10 @@
 import os
-import os.path as osp
 import tarfile
 import zipfile
-import gdown
 
 from dassl.utils import check_isfile
+import gdown
+import os.path as osp
 
 
 class Datum:
@@ -19,7 +19,7 @@ class Datum:
 
     def __init__(self, impath='', label=0, domain=-1, classname=''):
         assert isinstance(impath, str)
-        assert isinstance(label, int)
+#         assert isinstance(label, int)
         assert isinstance(domain, int)
         assert isinstance(classname, str)
         assert check_isfile(impath)
@@ -55,14 +55,18 @@ class DatasetBase:
     dataset_dir = '' # directory which contains the dataset
     domains = [] # string names of all domains
 
-    def __init__(self, train_x=None, train_u=None, val=None, test=None):
+    def __init__(self, train_x=None, train_u=None, val=None, test=None, outputs=None):
         self._train_x = train_x # labeled training data
         self._train_u = train_u # unlabeled training data (optional)
         self._val = val # validation data (optional)
         self._test = test # test data
-
-        self._num_classes = self.get_num_classes(train_x)
-        self._lab2cname = self.get_label_classname_mapping(train_x)
+        
+        if outputs: # Outputs describes nº outputs when we are building a regressor
+            self.set_num_classes(outputs)
+            self._lab2cname = None
+        else:
+            self._num_classes = self.get_num_classes(train_x)
+            self._lab2cname = self.get_label_classname_mapping(train_x)
 
     @property
     def train_x(self):
@@ -87,6 +91,9 @@ class DatasetBase:
     @property
     def num_classes(self):
         return self._num_classes
+    
+    def set_num_classes(self, int):
+        self._num_classes = int
 
     def get_num_classes(self, data_source):
         label_set = set()

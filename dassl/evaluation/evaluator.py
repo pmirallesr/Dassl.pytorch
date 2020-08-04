@@ -44,7 +44,7 @@ class Regression(EvaluatorBase):
     def evaluate(self):
         results = OrderedDict()
         results['loss'] = self._loss
-        print(f'=> result\n * loss: {self._loss:.2f}\n')
+        print(f'=> result\n * loss: {self._loss:.5f}\n')
         return results
 
 

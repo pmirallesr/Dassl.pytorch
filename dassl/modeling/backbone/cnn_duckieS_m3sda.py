@@ -50,9 +50,5 @@ class FeatureExtractor(Backbone):
 @BACKBONE_REGISTRY.register()
 def cnn_duckieS_m3sda(**kwargs):
     """
-    This architecture was used for the Digit-5 dataset in:
-
-        - Peng et al. Moment Matching for Multi-Source
-        Domain Adaptation. ICCV 2019.
     """
     return FeatureExtractor()

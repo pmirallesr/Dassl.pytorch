@@ -64,13 +64,11 @@ class Duckie(DatasetBase):
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )
         
-        nb_train = int(total_data*0.8)
-        nb_test = int(total_data*0.1)
-        nb_val = total_data - nb_train - nb_test
+        nb_train = 8960
+        nb_test = 1040
         train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS, n=nb_train)
         train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS, n=nb_train)
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS, n=nb_test)
-        val = self._read_data(cfg.DATASET.TARGET_DOMAINS, n=nb_val)
 
         super().__init__(train_x=train_x, train_u=train_u, test=test, outputs=2)
     

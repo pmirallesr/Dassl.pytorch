@@ -54,4 +54,4 @@ class FeatureExtractor(Backbone):
 def duckie_baseline(**kwargs):
     """
     """
-    return FeatureExtractor()
+    return FeatureExtractor(2, 1)

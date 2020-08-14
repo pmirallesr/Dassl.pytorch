@@ -5,7 +5,7 @@ https://github.com/VisionLearningGroup/VisionLearningGroup.github.io/tree/master
 """
 import torch.nn as nn
 from torch.nn import functional as F
-
+import torch
 from .build import BACKBONE_REGISTRY
 from .backbone import Backbone
 

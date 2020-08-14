@@ -50,7 +50,7 @@ class FeatureExtractor(Backbone):
 
 
 @BACKBONE_REGISTRY.register()
-def duckie_baseline(**kwargs):
+def cnn_duckieS_baseline(**kwargs):
     """
     """
     return FeatureExtractor(2, 1)

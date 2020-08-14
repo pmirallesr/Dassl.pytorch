@@ -7,6 +7,3 @@ INPUT:
 DATASET:
   NAME: 'Duckie'
 
-MODEL:
-  BACKBONE:
-    NAME: 'cnn_duckieS_m3sda'

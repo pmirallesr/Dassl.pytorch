@@ -46,20 +46,13 @@ def read_duckie_image_list(im_dir, domain, n, n_repeat=None):
 
 @DATASET_REGISTRY.register()
 class Duckie(DatasetBase):
-    """
-    """
     version = '1.0.0'
     dataset_dir = f'duckie/{version}'
 
-
-    def __init__(self, cfg, train=0.8, test=0.1):
-        assert train + test <= 1.0
-        self.input_domains = ['base_small', 'colors', 'shapes', 'textures', 'blurred', 'colors2', 'shapes2', 'textures2', 'blurred2']
-        self.target_domains = ['base_small', 'colors', 'shapes', 'textures', 'blurred', 'colors2', 'shapes2', 'textures2', 'blurred2', 'real_small']
-        self.domains = self.target_domains
+    def __init__(self, cfg, nb_train=8960, nb_test=1040):
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
         self.dataset_dir = osp.join(root, self.dataset_dir)
-
+        self.domains = ['base_small', 'colors', 'colors2', 'shapes', 'shapes2', 'blurred', 'blurred2', 'textures', 'textures2']
         self.check_input_domains(
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )

@@ -12,10 +12,8 @@ from .backbone import Backbone
 class FeatureExtractor(Backbone):
 
     def __init__(self, action_dim, max_action):
-        super(Actor, self).__init__()
+        super(FeatureExtractor, self).__init__()
         flat_size = 32 * 2 * 4
-        defaults.update((k, params[k]) for k in defaults.keys() & params.keys())
-        params = defaults
 
         self.lr = nn.LeakyReLU()
         self.tanh = nn.Tanh()

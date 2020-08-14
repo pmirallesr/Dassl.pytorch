@@ -27,10 +27,10 @@ class FeatureExtractor(Backbone):
         self.bn1 = nn.BatchNorm2d(32)
         self.bn2 = nn.BatchNorm2d(32)
         self.bn3 = nn.BatchNorm2d(32)
-        self.bn4 = nn.BatchNorm2d(32)
-        self._out_features = 128*15*20
+        self.bn4 = nn.BatchNorm2d(32)        
         self.dropout = nn.Dropout(.5)
-
+        self.fc1 = nn.Linear(256,512)
+        self._out_features = 512
     def _check_input(self, x):
         H, W = x.shape[2:]
         assert H == 60 and W == 80, \
@@ -44,6 +44,7 @@ class FeatureExtractor(Backbone):
         x = self.bn3(self.lr(self.conv3(x)))
         x = self.bn4(self.lr(self.conv4(x)))
         x = torch.flatten(x, start_dim=1)
+        x = self.fc1(x)
         x = self.dropout(x)
         return x
 

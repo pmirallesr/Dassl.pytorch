@@ -29,9 +29,9 @@ class Gate(nn.Module):
     
     def __init__(self, fdim, n_expert):
         super().__init__()
-        self.G = nn.Linear(fdim, n_expert)
+        self.gate = nn.Linear(fdim, n_expert)
     def forward(self, x):
-        return self.G(x)
+        return self.gate(x)
 
 
 @TRAINER_REGISTRY.register()

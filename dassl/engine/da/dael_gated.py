@@ -30,8 +30,9 @@ class Gate(nn.Module):
     def __init__(self, fdim, n_expert):
         super().__init__()
         self.G = nn.Linear(fdim, n_expert)
+        self.softmax = nn.Softmax()
     def forward(self, x):
-        return self.G(x)
+        return self.softmax(self.G(x))
 
 
 @TRAINER_REGISTRY.register()

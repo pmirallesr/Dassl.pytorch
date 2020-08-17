@@ -34,7 +34,7 @@ class Gate(nn.Module):
 
 
 @TRAINER_REGISTRY.register()
-class DAEL(TrainerXU):
+class DAELGated(TrainerXU):
     """Domain Adaptive Ensemble Learning.
 
     https://arxiv.org/abs/2003.07325.

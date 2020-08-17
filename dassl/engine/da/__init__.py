@@ -8,3 +8,4 @@ from .m3sda import M3SDA
 from .source_only import SourceOnly
 from .self_ensembling import SelfEnsembling
 from .dael_regression import DAELReg
+from .dael_gated import DAELGated

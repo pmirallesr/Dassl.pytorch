@@ -118,9 +118,10 @@ class DAELGated(TrainerXU):
                 pred_uk = self.E(k, feat_u)
                 pred_uk = pred_uk.unsqueeze(1)
                 pred_u.append(pred_uk)
-            u_filter = self.G(feat_u)
-            u_filter = u_filter.unsqueeze(2)
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
+            u_filter = self.G(feat_u)
+            u_filter = u_filter.unsqueeze(1).expand(*pred_u.shape)
+            print(pred_u, u_filter, pred_u*u_filter)
             pred_fu = pred_u*u_filter
 
         loss_x = 0

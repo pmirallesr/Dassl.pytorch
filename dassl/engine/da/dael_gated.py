@@ -29,9 +29,9 @@ class Gate(nn.Module):
     
     def __init__(self, fdim, n_expert):
         super().__init__()
-        self.gate = nn.Linear(fdim, n_expert)
+        self.G = nn.Linear(fdim, n_expert)
     def forward(self, x):
-        return self.gate(x)
+        return self.G(x)
 
 
 @TRAINER_REGISTRY.register()
@@ -94,6 +94,7 @@ class DAELGated(TrainerXU):
         
         print('Building G')
         self.G = Gate(fdim, self.num_classes)
+        self.G.to(self.device)
         print('# params: {:,}'.format(count_num_param(self.G)))
         self.optim_G = build_optimizer(self.G, cfg.OPTIM)
         self.sched_G = build_lr_scheduler(self.optim_G, cfg.OPTIM)

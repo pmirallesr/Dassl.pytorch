@@ -121,9 +121,7 @@ class DAELGated(TrainerXU):
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
             u_filter = self.G(feat_u)
             u_filter = u_filter.unsqueeze(1).expand(*pred_u.shape)
-            print(pred_u, u_filter, pred_u*u_filter)
-            pred_fu = pred_u*u_filter
-
+            pred_fu = (pred_u*u_filter).sum(1)
         loss_x = 0
         loss_cr = 0
 
@@ -139,13 +137,15 @@ class DAELGated(TrainerXU):
             # Learning expert
             pred_xi = self.E(i, feat_xi).unsqueeze(1)
             expert_label_xi = pred_xi.detach()
-            x_filter = self.G(feat_xi)
-            x_filter = x_filter.unsqueeze(2)
-            # Filter must be 1 for expert, 0 otherwise
-            filter_label = torch.Tensor([0 for i in range(len(domain_x))]).expand(input_x.shape[0], -1)
-            filter_label[i] = 1
-            loss_filter = (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
             loss_x += ((label_xi - pred_xi)**2).sum(1).mean()
+
+            x_filter = self.G(feat_xi)
+            x_filter = x_filter.unsqueeze(1).expand(*pred_xi.shape)
+            # Filter must be 1 for expert, 0 otherwise
+            filter_label = torch.Tensor([0 for j in range(len(domain_x))]).to(self.device)
+            filter_label[i] = 1
+            filter_label = filter_label.unsqueeze(1).unsqueeze(0).expand(*pred_u.shape)
+            loss_filter = (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
             
             
             # Consistency regularization - Mean must follow the leading expert
@@ -155,7 +155,7 @@ class DAELGated(TrainerXU):
                 pred_j = pred_j.unsqueeze(1)
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
-            cr_pred = cr_pred
+            cr_pred = (cr_pred*x_filter).sum(1)
             loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()
 
         loss_x /= self.n_domain

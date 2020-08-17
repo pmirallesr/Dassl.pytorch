@@ -25,6 +25,13 @@ class Experts(nn.Module):
         x = self.softmax(x)
         return x
 
+class Gate(nn.Module):
+    
+    def __init__(self, fdim, n_expert):
+        self.G = nn.Linear(fdim, n_expert)
+    def forward(self, x):
+        return self.G(x)
+
 
 @TRAINER_REGISTRY.register()
 class DAEL(TrainerXU):
@@ -83,17 +90,24 @@ class DAEL(TrainerXU):
         self.optim_E = build_optimizer(self.E, cfg.OPTIM)
         self.sched_E = build_lr_scheduler(self.optim_E, cfg.OPTIM)
         self.register_model('E', self.E, self.optim_E, self.sched_E)
-
+        
+        print('Building G')
+        self.G = Gate(fdim, self.num_classes)
+        print('# params: {:,}'.format(count_num_param(self.G)))
+        self.optim_G = build_optimizer(self.G, cfg.OPTIM)
+        self.sched_G = build_lr_scheduler(self.optim_G, cfg.OPTIM)
+        self.register_model('G', self.G, self.optim_G, self.sched_G)
+        
     def forward_backward(self, batch_x, batch_u):
         parsed_data = self.parse_batch_train(batch_x, batch_u)
         input_x, input_x2, label_x, domain_x, input_u, input_u2 = parsed_data
-
         input_x = torch.split(input_x, self.split_batch, 0)
         input_x2 = torch.split(input_x2, self.split_batch, 0)
         label_x = torch.split(label_x, self.split_batch, 0)
         domain_x = torch.split(domain_x, self.split_batch, 0)
         domain_x = [d[0].item() for d in domain_x]
-
+        # x = data with small augmentations. x2 = data with large augmentations
+        # They both correspond to the same datapoints. Same scheme for u and u2.
         # Generate pseudo label
         with torch.no_grad():
             feat_u = self.F(input_u)
@@ -102,22 +116,13 @@ class DAEL(TrainerXU):
                 pred_uk = self.E(k, feat_u)
                 pred_uk = pred_uk.unsqueeze(1)
                 pred_u.append(pred_uk)
+            u_filter = self.G(feat_u)
+            u_filter = u_filter.unsqueeze(2)
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
-            # Get the highest probability and index (label) for each expert
-            experts_max_p, experts_max_idx = pred_u.max(2) # (B, K)
-            # Get the most confident expert
-            max_expert_p, max_expert_idx = experts_max_p.max(1) # (B)
-            pseudo_label_u = []
-            for i, experts_label in zip(max_expert_idx, experts_max_idx):
-                pseudo_label_u.append(experts_label[i])
-            pseudo_label_u = torch.stack(pseudo_label_u, 0)
-            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)
-            pseudo_label_u = pseudo_label_u.to(self.device)
-            label_u_mask = (max_expert_p >= self.conf_thre).float()
+            pred_fu = pred_u*u_filter
 
         loss_x = 0
         loss_cr = 0
-        acc_x = 0
 
         feat_x = [self.F(x) for x in input_x]
         feat_x2 = [self.F(x) for x in input_x2]
@@ -129,25 +134,29 @@ class DAEL(TrainerXU):
             cr_s = [j for j in domain_x if j != i]
 
             # Learning expert
-            pred_xi = self.E(i, feat_xi)
-            loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
+            pred_xi = self.E(i, feat_xi).unsqueeze(1)
             expert_label_xi = pred_xi.detach()
-            acc_x += compute_accuracy(pred_xi.detach(),
-                                      label_xi.max(1)[1])[0].item()
-
-            # Consistency regularization
+            x_filter = self.G(feat_xi)
+            x_filter = x_filter.unsqueeze(2)
+            # Filter must be 1 for expert, 0 otherwise
+            filter_label = torch.Tensor([0 for i in range(len(domain_x))]).expand(input_x.shape[0], -1)
+            filter_label[i] = 1
+            loss_filter = (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
+            loss_x += ((label_xi - pred_xi)**2).sum(1).mean()
+            
+            
+            # Consistency regularization - Mean must follow the leading expert
             cr_pred = []
             for j in cr_s:
                 pred_j = self.E(j, feat_x2i)
                 pred_j = pred_j.unsqueeze(1)
                 cr_pred.append(pred_j)
             cr_pred = torch.cat(cr_pred, 1)
-            cr_pred = cr_pred.mean(1)
+            cr_pred = cr_pred
             loss_cr += ((cr_pred - expert_label_xi)**2).sum(1).mean()
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
-        acc_x /= self.n_domain
 
         # Unsupervised loss
         pred_u = []
@@ -157,18 +166,17 @@ class DAEL(TrainerXU):
             pred_u.append(pred_uk)
         pred_u = torch.cat(pred_u, 1)
         pred_u = pred_u.mean(1)
-        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
-        loss_u = (l_u * label_u_mask).mean()
+        loss_u = ((pred_fu - pred_u)**2).sum(1).mean()
 
         loss = 0
         loss += loss_x
         loss += loss_cr
+        loss += loss_filter
         loss += loss_u * self.weight_u
         self.model_backward_and_update(loss)
 
         loss_summary = {
             'loss_x': loss_x.item(),
-            'acc_x': acc_x,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item()
         }
@@ -198,11 +206,12 @@ class DAEL(TrainerXU):
 
     def model_inference(self, input):
         f = self.F(input)
+        g = self.G(input).unsqueeze(2)
         p = []
         for k in range(self.dm.num_source_domains):
             p_k = self.E(k, f)
             p_k = p_k.unsqueeze(1)
             p.append(p_k)
         p = torch.cat(p, 1)
-        p = p.mean(1)
+        p = p*g
         return p

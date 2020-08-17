@@ -93,7 +93,6 @@ class DAEL(TrainerXU):
         label_x = torch.split(label_x, self.split_batch, 0)
         domain_x = torch.split(domain_x, self.split_batch, 0)
         domain_x = [d[0].item() for d in domain_x]
-
         # Generate pseudo label
         with torch.no_grad():
             feat_u = self.F(input_u)

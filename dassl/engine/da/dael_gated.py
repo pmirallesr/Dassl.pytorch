@@ -245,7 +245,18 @@ class DAELGated(TrainerXU):
         input_u2 = input_u2.to(self.device)
 
         return input_x, input_x2, label_x, domain_x, input_u, input_u2
+    
+    def parse_batch_test(self, batch):
+        if self.is_regressive:
+            input = batch['img']
+            label = batch['label']
+            label = torch.cat([torch.unsqueeze(x, 1) for x in label], 1) #Stack list of tensors
+            input = input.to(self.device)
+            label = label.to(self.device)
+        else:
+            super().parse_batch_test(batch)
 
+        return input, label
     def model_inference(self, input):
         f = self.F(input)
         g = self.G(f).unsqueeze(2)

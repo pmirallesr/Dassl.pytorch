@@ -135,10 +135,19 @@ class DAELGated(TrainerXU):
                 pred_u.append(pred_uk)
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
             # Pseudolabel = weighted predictions
-            u_filter = self.G(feat_u)
-            d_closest = self.d_closest(u_filter)
+            u_filter = self.G(feat_u) # (B, K)
+            label_u_mask = (u_filter.max(1)[0] >= self.conf_thre) # (B). 1 if >=1 expert > thre, 0 otherwise
+            new_u_filter = torch.zeros(*u_filter.shape).to(self.device)
+            for i, row in enumerate(u_filter):
+                j_max = row.max(0)[1]
+                new_u_filter[i,j_max] = 1
+            u_filter = new_u_filter
+            d_closest = self.d_closest(u_filter).max(0)[1]
             u_filter = u_filter.unsqueeze(2).expand(*pred_u.shape)
-            pred_fu = (pred_u*u_filter).sum(1)
+            pred_fu = (pred_u*u_filter).sum(1) # Zero out all non chosen experts
+            pseudo_label_u = pred_fu.max(1)[1] # (B)
+            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)
+            print(pseudo_label_u)
         # Init losses
         loss_x = 0
         loss_cr = 0
@@ -196,7 +205,8 @@ class DAELGated(TrainerXU):
             pred_u.append(pred_uk)
         pred_u = torch.cat(pred_u, 1)
         pred_u = pred_u.mean(1)
-        loss_u = ((pred_fu - pred_u)**2).sum(1).mean()
+        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
+        loss_u = (l_u * label_u_mask).mean()
         
         loss = 0
         loss += loss_x
@@ -212,7 +222,8 @@ class DAELGated(TrainerXU):
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item(),
-            'd_closest': d_closest.max(0)[1]
+            #'d_closest': d_closest.max(0)[1]
+            'd_closest': d_closest.item()
         }
 
         if (self.batch_idx + 1) == self.num_batches:
@@ -246,8 +257,8 @@ class DAELGated(TrainerXU):
             p_k = self.E(k, f)
             p_k = p_k.unsqueeze(1)
             p.append(p_k)
-        p = torch.cat(p, 1)
-        p = (p*g).sum(1)
+        p = torch.cat(p, 1).mean(1)
+#         p = (p*g).sum(1)
         return p, g
     
     @torch.no_grad()
@@ -269,8 +280,8 @@ class DAELGated(TrainerXU):
             self.evaluator.process(output, label)
 
         results = self.evaluator.evaluate()
-        all_d_filter = list(torch.cat(all_d_filter, 0).mean(0).cpu().detach())
-        print(f"* {all_d_filter}")
+        all_d_filter = torch.cat(all_d_filter, 0).mean(0).cpu().detach().numpy()
+        print(f"* Average gate: {list(all_d_filter)}")
         for k, v in results.items():
             tag = '{}/{}'.format(split, k)
             self.write_scalar(tag, v, self.epoch)

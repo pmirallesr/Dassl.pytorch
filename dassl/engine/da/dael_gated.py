@@ -101,6 +101,14 @@ class DAELGated(TrainerXU):
         self.sched_G = build_lr_scheduler(self.optim_G, cfg.OPTIM)
         self.register_model('G', self.G, self.optim_G, self.sched_G)
         
+    def calc_closest_d(self, d_filter):
+        n_dom = d_filter.shape[1]
+        closest = d_filter.max(1)[1]
+        n_closest = []
+        for dom in range(n_dom):
+            times_closest = [closest[i] for i in range(len(closest)) if closest[i] == dom].sum()
+            n_closest.append(times_closest/len(d_filter))
+        return n_closest
     def forward_backward(self, batch_x, batch_u):
         # Load data
         parsed_data = self.parse_batch_train(batch_x, batch_u)
@@ -128,7 +136,7 @@ class DAELGated(TrainerXU):
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
             # Pseudolabel = weighted predictions
             u_filter = self.G(feat_u)
-            d_closest = u_filter.max(0)[1]
+            d_closest = self.d_closest(u_filter)
             u_filter = u_filter.unsqueeze(2).expand(*pred_u.shape)
             pred_fu = (pred_u*u_filter).sum(1)
         # Init losses

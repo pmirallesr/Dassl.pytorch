@@ -203,7 +203,7 @@ class DAELGated(TrainerXU):
             pred_uk = self.E(k, feat_u2)
             pred_uk = pred_uk.unsqueeze(1)
             pred_u.append(pred_uk)
-        pred_u = torch.cat(pred_u, 1)
+        pred_u = torch.cat(pred_u, 1).to(self.device)
         pred_u = pred_u.mean(1)
         l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
         loss_u = (l_u * label_u_mask).mean()

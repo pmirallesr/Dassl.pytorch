@@ -146,7 +146,7 @@ class DAELGated(TrainerXU):
             u_filter = u_filter.unsqueeze(2).expand(*pred_u.shape)
             pred_fu = (pred_u*u_filter).sum(1) # Zero out all non chosen experts
             pseudo_label_u = pred_fu.max(1)[1] # (B)
-            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes)
+            pseudo_label_u = create_onehot(pseudo_label_u, self.num_classes).to(self.device)
             print(pseudo_label_u)
         # Init losses
         loss_x = 0

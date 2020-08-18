@@ -212,7 +212,7 @@ class DAELGated(TrainerXU):
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item(),
-            'd_closest': d_closest.item()
+            'd_closest': d_closest
         }
 
         if (self.batch_idx + 1) == self.num_batches:

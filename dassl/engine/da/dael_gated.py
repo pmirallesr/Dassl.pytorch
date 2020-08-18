@@ -125,6 +125,8 @@ class DAELGated(TrainerXU):
             pred_fu = (pred_u*u_filter).sum(1)
         loss_x = 0
         loss_cr = 0
+        acc_x = 0
+        acc_filter = 0
 
         feat_x = [self.F(x) for x in input_x]
         feat_x2 = [self.F(x) for x in input_x2]
@@ -139,6 +141,8 @@ class DAELGated(TrainerXU):
             pred_xi = self.E(i, feat_xi).unsqueeze(1)
             expert_label_xi = pred_xi.detach()
             loss_x += ((label_xi - pred_xi)**2).sum(1).mean()
+            acc_x += compute_accuracy(pred_xi.detach(),
+                                      label_xi.max(1)[1])[0].item()
 
             x_filter = self.G(feat_xi)
             x_filter = x_filter.unsqueeze(1).expand(*pred_xi.shape)
@@ -147,6 +151,8 @@ class DAELGated(TrainerXU):
             filter_label[i] = 1
             filter_label = filter_label.unsqueeze(1).unsqueeze(0).expand(*pred_u.shape)
             loss_filter = (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
+            acc_filter += compute_accuracy(x_filter.detach(),
+                                      filter_label.item())
             
             
             # Consistency regularization - Mean must follow the leading expert
@@ -161,6 +167,8 @@ class DAELGated(TrainerXU):
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
+        acc_x /= self.n_domain
+        acc_filter /= self.n_domain
 
         # Unsupervised loss
         pred_u = []
@@ -181,6 +189,8 @@ class DAELGated(TrainerXU):
 
         loss_summary = {
             'loss_x': loss_x.item(),
+            'acc_x': acc_x,
+            'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item()
         }

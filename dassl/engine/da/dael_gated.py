@@ -101,7 +101,7 @@ class DAELGated(TrainerXU):
         self.sched_G = build_lr_scheduler(self.optim_G, cfg.OPTIM)
         self.register_model('G', self.G, self.optim_G, self.sched_G)
         
-    def calc_closest_d(self, d_filter):
+    def d_closest(self, d_filter):
         n_dom = d_filter.shape[1]
         closest = d_filter.max(1)[1]
         n_closest = []

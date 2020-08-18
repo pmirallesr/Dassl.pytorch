@@ -1,23 +1,12 @@
 DATALOADER:
   TRAIN_X:
     SAMPLER: 'RandomDomainSampler'
-    BATCH_SIZE: 288
+    BATCH_SIZE: 160
   TRAIN_U:
     SAME_AS_X: False
     BATCH_SIZE: 32
   TEST:
-    BATCH_SIZE: 288
-DATASET:
-   SOURCE_DOMAINS:
-      - base_small
-      - colors
-      - colors2
-      - blurred
-      - blurred2
-      - shapes
-      - shapes2
-      - textures
-      - textures2
+    BATCH_SIZE: 160
 OPTIM:
   NAME: 'sgd'
   LR: 0.05
@@ -31,3 +20,4 @@ TEST:
 TRAINER:
   DAEL:
     STRONG_TRANSFORMS: ['randaugment2', 'normalize']
+    TASK: Regression

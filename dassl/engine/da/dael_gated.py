@@ -44,6 +44,7 @@ class DAELGated(TrainerXU):
 
     def __init__(self, cfg):
         super().__init__(cfg)
+        self.is_regressive = cfg.TRAINER.DAEL.TASK.lower() == "regression"
         n_domain = cfg.DATALOADER.TRAIN_X.N_DOMAIN
         batch_size = cfg.DATALOADER.TRAIN_X.BATCH_SIZE
         if n_domain <= 0:
@@ -159,8 +160,11 @@ class DAELGated(TrainerXU):
             # Learning expert
             pred_xi = self.E(i, feat_xi)
             expert_label_xi = pred_xi.detach()
-            loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
-            acc_x += compute_accuracy(pred_xi.detach(),
+            if self.is_regressive:
+                loss_x += ((pred_xi - label_xi)**2).sum(1).mean()
+            else:
+                loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
+                acc_x += compute_accuracy(pred_xi.detach(),
                                       label_xi.max(1)[1])[0].item()
 
             x_filter = self.G(feat_xi)
@@ -184,7 +188,8 @@ class DAELGated(TrainerXU):
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
-        acc_x /= self.n_domain
+        if not self.is_regressive:
+            acc_x /= self.n_domain
         loss_filter /= self.n_domain
         acc_filter /= self.n_domain
 
@@ -207,13 +212,14 @@ class DAELGated(TrainerXU):
         
         loss_summary = {
             'loss_x': loss_x.item(),
-            'acc_x': acc_x,
             'loss_filter': loss_filter.item(),
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item(),
             'd_closest': d_closest.max(0)[1]
         }
+        if not self.is_regressive:
+            loss_summary['acc_x'] = acc_x
 
         if (self.batch_idx + 1) == self.num_batches:
             self.update_lr()
@@ -227,8 +233,10 @@ class DAELGated(TrainerXU):
         domain_x = batch_x['domain']
         input_u = batch_u['img']
         input_u2 = batch_u['img2']
-
-        label_x = create_onehot(label_x, self.num_classes)
+        if self.is_regressive:
+            label_x = torch.cat([torch.unsqueeze(x, 1) for x in label_x], 1) #Stack list of tensors
+        else:
+            label_x = create_onehot(label_x, self.num_classes)
 
         input_x = input_x.to(self.device)
         input_x2 = input_x2.to(self.device)

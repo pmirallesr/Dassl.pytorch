@@ -52,7 +52,7 @@ class Duckie(DatasetBase):
     def __init__(self, cfg, nb_train=8960, nb_test=1040):
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
         self.dataset_dir = osp.join(root, self.dataset_dir)
-        self.domains = ['base_small', 'colors', 'colors2', 'shapes', 'shapes2', 'blurred', 'blurred2', 'textures', 'textures2']
+        self.domains = ['base_small', 'colors', 'colors2', 'shapes', 'shapes2', 'blurred', 'blurred2', 'textures', 'textures2','combined', 'combined2']
         self.check_input_domains(
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )

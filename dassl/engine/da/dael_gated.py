@@ -128,7 +128,7 @@ class DAELGated(TrainerXU):
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
             # Pseudolabel = weighted predictions
             u_filter = self.G(feat_u)
-            d_closest = u_filter.max()[1]
+            d_closest = u_filter.max(0)[1]
             u_filter = u_filter.unsqueeze(2).expand(*pred_u.shape)
             pred_fu = (pred_u*u_filter).sum(1)
         # Init losses

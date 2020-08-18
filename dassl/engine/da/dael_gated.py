@@ -235,5 +235,5 @@ class DAELGated(TrainerXU):
             p_k = p_k.unsqueeze(1)
             p.append(p_k)
         p = torch.cat(p, 1)
-        p = p*g
+        p = (p*g).sum(1)
         return p

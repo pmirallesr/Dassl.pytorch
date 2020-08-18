@@ -132,6 +132,7 @@ class DAELGated(TrainerXU):
         loss_x = 0
         loss_cr = 0
         acc_x = 0
+        loss_filter = 0
         acc_filter = 0
         
         # Supervised and unsupervised features
@@ -156,7 +157,7 @@ class DAELGated(TrainerXU):
             filter_label = torch.Tensor([0 for _ in range(len(domain_x))]).to(self.device)
             filter_label[i] = 1
             filter_label = filter_label.unsqueeze(0).expand(*x_filter.shape)
-            loss_filter = (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
+            loss_filter += (-filter_label * torch.log(x_filter + 1e-5)).sum(1).mean()
             acc_filter += compute_accuracy(x_filter.detach(),
                                       filter_label.max(1)[1])[0].item()
             

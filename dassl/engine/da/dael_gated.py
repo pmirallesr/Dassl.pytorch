@@ -106,7 +106,7 @@ class DAELGated(TrainerXU):
         closest = d_filter.max(1)[1]
         n_closest = []
         for dom in range(n_dom):
-            times_closest = [closest[i] for i in range(len(closest)) if closest[i] == dom].sum()
+            times_closest = torch.Tensor([closest[i] for i in range(len(closest)) if closest[i] == dom]).sum().item()
             n_closest.append(times_closest/len(d_filter))
         return n_closest
     def forward_backward(self, batch_x, batch_u):

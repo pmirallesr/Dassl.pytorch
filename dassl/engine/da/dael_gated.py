@@ -173,6 +173,7 @@ class DAELGated(TrainerXU):
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
         acc_x /= self.n_domain
+        loss_filter /= self.n_domain
         acc_filter /= self.n_domain
 
         # Unsupervised loss
@@ -192,10 +193,10 @@ class DAELGated(TrainerXU):
         loss += loss_u * self.weight_u
         self.model_backward_and_update(loss)
         
-        print(loss_x, loss_cr, loss_filter, loss_u*self.weight_u)
         loss_summary = {
             'loss_x': loss_x.item(),
             'acc_x': acc_x,
+            'loss_filter': loss_filter.item(),
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item()

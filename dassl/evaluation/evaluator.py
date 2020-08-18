@@ -133,3 +133,30 @@ class Classification(EvaluatorBase):
             print('Confusion matrix is saved to "{}"'.format(save_path))
 
         return results
+
+def GatedClassification(Classification):
+    def __init__(self, cfg, lab2cname=None, **kwargs):
+        super().__init__(cfg, lab2cname, **kwargs)
+        self.d_filter = torch.zeros(len(cfg.DATASET.SOURCE_DOMAINS))
+    def reset(self):
+        super().reset()
+        self.d_filter = 0
+    def process(self, mo, gt):
+        # mo (torch.Tensor): model output [batch, num_classes]
+        # gt (torch.LongTensor): ground truth [batch]
+        pred = mo.max(1)[1]
+        matched = pred.eq(gt).float()
+        self._correct += int(matched.sum().item())
+        self._total += gt.shape[0]
+
+        self._y_true.extend(gt.data.cpu().numpy().tolist())
+        self._y_pred.extend(pred.data.cpu().numpy().tolist())
+
+        if self._per_class_res is not None:
+            for i, label in enumerate(gt):
+                label = label.item()
+                matched_i = int(matched[i].item())
+                self._per_class_res[label].append(matched_i)
+        
+        
+        

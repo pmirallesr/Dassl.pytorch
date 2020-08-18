@@ -104,7 +104,7 @@ class DAELGated(TrainerXU):
     def d_closest(self, d_filter):
         n_dom = d_filter.shape[1]
         closest = d_filter.max(1)[1]
-        n_closest = torch.zeros(1, d_filter.shape[1])
+        n_closest = torch.zeros(d_filter.shape[1])
         for dom in range(n_dom):
             times_closest = torch.Tensor([closest[i] for i in range(len(closest)) if closest[i] == dom]).sum().item()
             n_closest[dom] = (times_closest/len(d_filter))
@@ -248,4 +248,28 @@ class DAELGated(TrainerXU):
             p.append(p_k)
         p = torch.cat(p, 1)
         p = (p*g).sum(1)
-        return p
+        return p, g
+    @torch.no_grad()
+    def test(self):
+        """A generic testing pipeline."""
+        self.set_model_mode('eval')
+        self.evaluator.reset()
+
+        split = self.cfg.TEST.SPLIT
+        print('Do evaluation on {} set'.format(split))
+        data_loader = self.val_loader if split == 'val' else self.test_loader
+        assert data_loader is not None
+        
+        all_d_filter = []
+        for batch_idx, batch in enumerate(data_loader):
+            input, label = self.parse_batch_test(batch)
+            output, d_filter = self.model_inference(input)
+            all_d_filter.append(d_filter)
+            self.evaluator.process(output, label)
+
+        results = self.evaluator.evaluate()
+        all_d_filter = torch.cat(d_filter, 0)
+        print(f" * {all_d_filter.mean(0).cpu().detach()}")
+        for k, v in results.items():
+            tag = '{}/{}'.format(split, k)
+            self.write_scalar(tag, v, self.epoch)

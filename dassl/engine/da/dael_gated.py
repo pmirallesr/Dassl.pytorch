@@ -227,7 +227,7 @@ class DAELGated(TrainerXU):
 
     def model_inference(self, input):
         f = self.F(input)
-        g = self.G(input).unsqueeze(2)
+        g = self.G(f).unsqueeze(2)
         p = []
         for k in range(self.dm.num_source_domains):
             p_k = self.E(k, f)

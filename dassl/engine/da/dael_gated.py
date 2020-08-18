@@ -114,6 +114,8 @@ class DAELGated(TrainerXU):
         # x = data with small augmentations. x2 = data with large augmentations
         # They both correspond to the same datapoints. Same scheme for u and u2.
         
+        
+        
         # Generate pseudo label
         with torch.no_grad():
             # Unsupervised predictions
@@ -126,6 +128,7 @@ class DAELGated(TrainerXU):
             pred_u = torch.cat(pred_u, 1) # (B, K, C)
             # Pseudolabel = weighted predictions
             u_filter = self.G(feat_u)
+            d_closest = u_filter.max()[1]
             u_filter = u_filter.unsqueeze(2).expand(*pred_u.shape)
             pred_fu = (pred_u*u_filter).sum(1)
         # Init losses
@@ -200,7 +203,8 @@ class DAELGated(TrainerXU):
             'loss_filter': loss_filter.item(),
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
-            'loss_u': loss_u.item()
+            'loss_u': loss_u.item(),
+            'd_closest': d_closest.item()
         }
 
         if (self.batch_idx + 1) == self.num_batches:

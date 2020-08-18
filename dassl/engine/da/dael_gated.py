@@ -104,10 +104,10 @@ class DAELGated(TrainerXU):
     def d_closest(self, d_filter):
         n_dom = d_filter.shape[1]
         closest = d_filter.max(1)[1]
-        n_closest = []
+        n_closest = torch.zeros(1, d_filter.shape[1])
         for dom in range(n_dom):
             times_closest = torch.Tensor([closest[i] for i in range(len(closest)) if closest[i] == dom]).sum().item()
-            n_closest.append(times_closest/len(d_filter))
+            n_closest[dom] = (times_closest/len(d_filter))
         return n_closest
     def forward_backward(self, batch_x, batch_u):
         # Load data
@@ -212,7 +212,7 @@ class DAELGated(TrainerXU):
             'acc_filter': acc_filter,
             'loss_cr': loss_cr.item(),
             'loss_u': loss_u.item(),
-            'd_closest': d_closest
+            'd_closest': d_closest.max(0)[1]
         }
 
         if (self.batch_idx + 1) == self.num_batches:

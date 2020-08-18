@@ -249,6 +249,7 @@ class DAELGated(TrainerXU):
         p = torch.cat(p, 1)
         p = (p*g).sum(1)
         return p, g
+    
     @torch.no_grad()
     def test(self):
         """A generic testing pipeline."""
@@ -268,8 +269,8 @@ class DAELGated(TrainerXU):
             self.evaluator.process(output, label)
 
         results = self.evaluator.evaluate()
-        all_d_filter = torch.cat(d_filter, 0)
-        print(f" * {all_d_filter.mean(0).cpu().detach()}")
+        all_d_filter = list(torch.cat(all_d_filter, 0).mean(0).cpu().detach())
+        print(f"* {all_d_filter}")
         for k, v in results.items():
             tag = '{}/{}'.format(split, k)
             self.write_scalar(tag, v, self.epoch)

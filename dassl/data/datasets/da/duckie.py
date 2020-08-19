@@ -14,7 +14,6 @@ def read_duckie_image_list(im_dir, domain, n, n_repeat=None):
     total_imgs = 0
     for file_name in sorted(listdir_nohidden(im_dir)):
         if file_name.startswith('episode_'):
-            n_ep = int(file_name[-2:])
             ep_dir = osp.join(im_dir, file_name)
             annotations_filename = osp.join(ep_dir,'annotation.txt')
             iter_ep_dir = sorted(listdir_nohidden(ep_dir))
@@ -57,8 +56,8 @@ class Duckie(DatasetBase):
             cfg.DATASET.SOURCE_DOMAINS, cfg.DATASET.TARGET_DOMAINS
         )
         
-        nb_train = 8960
-        nb_test = 1040
+        nb_train = nb_train
+        nb_test = nb_test
         train_x = self._read_data(cfg.DATASET.SOURCE_DOMAINS, n=nb_train)
         train_u = self._read_data(cfg.DATASET.TARGET_DOMAINS, n=nb_train)
         test = self._read_data(cfg.DATASET.TARGET_DOMAINS, n=nb_test)

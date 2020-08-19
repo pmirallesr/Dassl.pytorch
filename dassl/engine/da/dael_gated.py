@@ -254,7 +254,7 @@ class DAELGated(TrainerXU):
             input = input.to(self.device)
             label = label.to(self.device)
         else:
-            super().parse_batch_test(batch)
+            input, label = super().parse_batch_test(batch)
 
         return input, label
     def model_inference(self, input):

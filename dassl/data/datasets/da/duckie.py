@@ -45,7 +45,7 @@ def read_duckie_image_list(im_dir, domain, n, n_repeat=None):
 
 @DATASET_REGISTRY.register()
 class Duckie(DatasetBase):
-    version = '1.0.0'
+    version = '2.0.0'
     dataset_dir = f'duckie/{version}'
 
     def __init__(self, cfg, nb_train=8960, nb_test=1040):

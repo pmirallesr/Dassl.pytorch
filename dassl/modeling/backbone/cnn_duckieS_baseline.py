@@ -50,7 +50,7 @@ class FeatureExtractor(Backbone):
 
 
 @BACKBONE_REGISTRY.register()
-def cnn_duckieS_baseline(**kwargs):
+def cnn_duckieS_baseline(in_channels=3, **kwargs):
     """
     """
-    return FeatureExtractor(2, 1, kwargs['in_channels'])
+    return FeatureExtractor(2, 1, in_channels)

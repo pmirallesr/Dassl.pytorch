@@ -1,12 +1,12 @@
 DATALOADER:
   TRAIN_X:
     SAMPLER: 'RandomDomainSampler'
-    BATCH_SIZE: 160
+    BATCH_SIZE: 288
   TRAIN_U:
     SAME_AS_X: False
     BATCH_SIZE: 32
   TEST:
-    BATCH_SIZE: 160
+    BATCH_SIZE: 288
 OPTIM:
   NAME: 'sgd'
   LR: 0.05

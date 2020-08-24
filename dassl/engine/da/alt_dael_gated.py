@@ -13,16 +13,20 @@ from dassl.modeling.ops.utils import create_onehot
 
 class Experts(nn.Module):
 
-    def __init__(self, n_source, fdim, num_classes):
+    def __init__(self, n_source, fdim, num_classes, regressive=False):
         super().__init__()
+        self.inner_act = nn.LeakyReLU()
         self.linears = nn.ModuleList(
-            [nn.Linear(fdim, num_classes) for _ in range(n_source)]
+            [nn.Sequential(nn.Linear(fdim, 512), nn.LeakyReLU(), nn.Linear(512,num_classes)) for _ in range(n_source)]
         )
-        self.softmax = nn.Softmax(dim=1)
+        if regressive:
+            self.final_act = nn.Sigmoid()
+        else:
+            self.final_act = nn.Softmax(dim=1)
 
     def forward(self, i, x):
         x = self.linears[i](x)
-        x = self.softmax(x)
+        x = self.final_act(x)
         return x
 
 class Gate(nn.Module):

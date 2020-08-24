@@ -16,8 +16,6 @@ class FeatureExtractor(Backbone):
         flat_size = 32 * 2 * 4
 
         self.lr = nn.LeakyReLU()
-        self.tanh = nn.Tanh()
-        self.sigm = nn.Sigmoid()
 
         self.conv1 = nn.Conv2d(in_channels, 32, 8, stride=2)
         self.conv2 = nn.Conv2d(32, 32, 4, stride=2)
@@ -29,7 +27,7 @@ class FeatureExtractor(Backbone):
         self.bn3 = nn.BatchNorm2d(32)
         self.bn4 = nn.BatchNorm2d(32)        
         self.dropout = nn.Dropout(.5)
-        self.fc1 = nn.Linear(256,512)
+        self.fc1 = nn.Linear(flat_size,512)
         self._out_features = 512
     def _check_input(self, x):
         H, W = x.shape[2:]
@@ -44,8 +42,9 @@ class FeatureExtractor(Backbone):
         x = self.bn3(self.lr(self.conv3(x)))
         x = self.bn4(self.lr(self.conv4(x)))
         x = torch.flatten(x, start_dim=1)
-        x = self.fc1(x)
         x = self.dropout(x)
+        x = self.lr(self.fc1(x))
+        
         return x
 
 

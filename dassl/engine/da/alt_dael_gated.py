@@ -25,7 +25,7 @@ class Experts(nn.Module):
 
     def forward(self, i, x):
         x = self.linears[i](x)
-        x = self.softmax(x)
+        x = self.activation(x)
         return x
 
 class Gate(nn.Module):

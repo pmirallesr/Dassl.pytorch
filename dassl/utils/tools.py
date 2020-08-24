@@ -98,16 +98,35 @@ def download_url(url, dst):
     urllib.request.urlretrieve(url, dst, _reporthook)
     sys.stdout.write('\n')
 
+# Stacked images are passed as a list of paths
+def read_image_list(path_list):
+    """Read images from path list using ``PIL.Image``.
+
+    Args:
+        path (Iterable): list of paths to several images.
+
+    Returns:
+        PIL image
+    """
+    images = []
+    for path in path_list:
+        print(path)
+        images.append(read_image(path))
+    return images
 
 def read_image(path):
     """Read image from path using ``PIL.Image``.
 
     Args:
-        path (str): path to an image.
+        path (str, Iterable): path to an image, or list of paths to several images.
 
     Returns:
         PIL image
     """
+    
+    if isinstance(path, (list, tuple)):
+        return read_image_list(path)
+        
     if not osp.exists(path):
         raise IOError('No file exists at {}'.format(path))
 

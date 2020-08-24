@@ -237,6 +237,10 @@ class AltDAELGated(TrainerXU):
         return loss_summary
 
     def parse_batch_train(self, batch_x, batch_u):
+        print(batch_x.keys())
+        print(batch_x['img'].shape)
+        print(batch_u.keys())
+        print(batch_u["img2"].shape)
         input_x = batch_x['img']
         input_x2 = batch_x['img2']
         label_x = batch_x['label']

@@ -65,6 +65,9 @@ _C.DATASET.VAL_PERCENT = 0.1
 # Fold index for STL-10 dataset (normal range is 0 - 9)
 # Negative number means None
 _C.DATASET.STL10_FOLD = -1
+# Number of stacked images for frame_stacking
+_C.DATASET.NUM_STACK = 1
+
 
 ###########################
 # Dataloader

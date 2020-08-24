@@ -208,33 +208,44 @@ class DatasetWrapper(TorchDataset):
 
     def __len__(self):
         return len(self.data_source)
-
+    
+    def transform_item(self, img0):
+        tr_items = [self.to_tensor(img0)]
+        if self.transform is not None:
+            if isinstance(self.transform, (list, tuple)):
+                for tfm in self.transform:
+                    img = self._transform_image(tfm, img0)
+                    tr_items.append(img)
+            else:
+                img = self._transform_image(self.transform, img0)
+                tr_items.append(img)
+        return tr_items
+    
     def __getitem__(self, idx):
         item = self.data_source[idx]
-
         output = {
             'label': item.label,
             'domain': item.domain,
             'impath': item.impath
         }
-
-        img0 = read_image(item.impath)
-
-        if self.transform is not None:
-            if isinstance(self.transform, (list, tuple)):
-                for i, tfm in enumerate(self.transform):
-                    img = self._transform_image(tfm, img0)
-                    keyname = 'img'
-                    if (i + 1) > 1:
-                        keyname += str(i + 1)
-                    output[keyname] = img
+        
+        if isinstance(item.impath, (list, tuple)):
+            imgs = [] # List[List[tr_images]]
+            for impath in item.impath:
+                img_i0 = read_image(impath)
+                imgs.append(self.transform_item(img_i0))
+        else:
+            img0 = read_image(item.impath)
+            imgs.append(self.transform_item(img0))
+        for i in range(len(imgs[0])):
+            temp=[]
+            if i != 1:
+                idx = f"img{i}"
             else:
-                img = self._transform_image(self.transform, img0)
-                output['img'] = img
-
-        img0 = self.to_tensor(img0)
-        output['img0'] = img0
-
+                idx = "img"
+            for j in range(len(imgs)):
+                temp.append(imgs[j][i])
+            output[idx] = torch.cat(temp, 0)
         return output
 
     def _transform_image(self, tfm, img0):

@@ -11,18 +11,21 @@ class Datum:
     """Data instance which defines the basic attributes.
 
     Args:
-        impath (str): image path.
+        impath (str, list, tuple): image path.
         label (int): class label.
         domain (int): domain label.
         classname (str): class name.
     """
 
     def __init__(self, impath='', label=0, domain=-1, classname=''):
-        assert isinstance(impath, str)
+        assert isinstance(impath, (str, list, tuple))
 #         assert isinstance(label, int)
         assert isinstance(domain, int)
         assert isinstance(classname, str)
-        assert check_isfile(impath)
+        if isinstance(impath, (list, tuple)):
+            assert all([check_isfile(fpath) for fpath in impath])
+        else:
+            assert check_isfile(impath)
 
         self._impath = impath
         self._label = label

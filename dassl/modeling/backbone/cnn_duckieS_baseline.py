@@ -11,7 +11,7 @@ from .backbone import Backbone
 
 class FeatureExtractor(Backbone):
 
-    def __init__(self, action_dim, max_action):
+    def __init__(self, action_dim, max_action, in_channels=3):
         super(FeatureExtractor, self).__init__()
         flat_size = 32 * 2 * 4
 
@@ -19,7 +19,7 @@ class FeatureExtractor(Backbone):
         self.tanh = nn.Tanh()
         self.sigm = nn.Sigmoid()
 
-        self.conv1 = nn.Conv2d(3, 32, 8, stride=2)
+        self.conv1 = nn.Conv2d(in_channels, 32, 8, stride=2)
         self.conv2 = nn.Conv2d(32, 32, 4, stride=2)
         self.conv3 = nn.Conv2d(32, 32, 4, stride=2)
         self.conv4 = nn.Conv2d(32, 32, 4, stride=1)
@@ -53,4 +53,4 @@ class FeatureExtractor(Backbone):
 def cnn_duckieS_baseline(**kwargs):
     """
     """
-    return FeatureExtractor(2, 1)
+    return FeatureExtractor(2, 1, kwargs['in_channels'])

@@ -264,6 +264,17 @@ def randaugment_list2():
 
     return augs
 
+def randaugment_list_duckie():
+    augs = [
+        (AutoContrast, 0, 1), (Brightness, 0.1, 1.9), (Color, 0.1, 1.9),
+        (Contrast, 0.1, 1.9), (Equalize, 0, 1), (Identity, 0, 1),
+        (Invert, 0, 1), (Posterize, 4, 8),
+        (Sharpness, 0.1, 1.9),
+        (Solarize, 0, 256),
+    ]
+
+    return augs
+
 
 def fixmatch_list():
     # https://arxiv.org/abs/2001.07685
@@ -315,6 +326,28 @@ class RandAugment2:
 
         return img
 
+class RandAugmentDuckie:
+    '''
+    Like RandAugment2, but omits transformations that would alter labels for duckie
+    Args:
+    '''
+
+    def __init__(self, n=2, p=0.6):
+        self.n = n
+        self.p = p
+        self.augment_list = randaugment_list_duckie()
+
+    def __call__(self, img):
+        ops = random.choices(self.augment_list, k=self.n)
+
+        for op, minval, maxval in ops:
+            if random.random() > self.p:
+                continue
+            m = random.random()
+            val = m * (maxval-minval) + minval
+            img = op(img, val)
+
+        return img
 
 class RandAugmentFixMatch:
 

@@ -76,9 +76,13 @@ class AltDAELGated(TrainerXU):
 
     def build_model(self):
         cfg = self.cfg
-
-        print('Building F')
-        self.F = SimpleNet(cfg, cfg.MODEL, 0)
+        img_channels = cfg.DATASET.N_CHANNELS
+        if 'grayscale' in cfg.INPUT.TRANSFORMS:
+            img_channels = 1
+            print("Found grayscale! Set img_channels to 1")
+        backbone_in_channels = img_channels * cfg.DATASET.NUM_STACK
+        print(f'Building F with {backbone_in_channels} in channels')
+        self.F = SimpleNet(cfg, cfg.MODEL, 0, in_channels=backbone_in_channels)
         self.F.to(self.device)
         print('# params: {:,}'.format(count_num_param(self.F)))
         self.optim_F = build_optimizer(self.F, cfg.OPTIM)
@@ -238,9 +242,9 @@ class AltDAELGated(TrainerXU):
 
     def parse_batch_train(self, batch_x, batch_u):
         print(batch_x.keys())
-        print(batch_x['img'].shape)
+        print(batch_x['img'])
         print(batch_u.keys())
-        print(batch_u["img2"].shape)
+        print(batch_u["img2"])
         input_x = batch_x['img']
         input_x2 = batch_x['img2']
         label_x = batch_x['label']

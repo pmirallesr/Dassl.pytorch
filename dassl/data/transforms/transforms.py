@@ -4,17 +4,18 @@ import torch
 from PIL import Image
 from torchvision.transforms import (
     Resize, Compose, ToTensor, Normalize, CenterCrop, RandomCrop,
-    RandomResizedCrop, RandomHorizontalFlip
+    RandomResizedCrop, RandomHorizontalFlip, Grayscale, Lambda
 )
 
 from .autoaugment import SVHNPolicy, CIFAR10Policy, ImageNetPolicy
-from .randaugment import RandAugment, RandAugment2, RandAugmentFixMatch
+from .randaugment import RandAugment, RandAugment2, RandAugmentDuckie, RandAugmentFixMatch
 
 AVAI_CHOICES = [
     'random_flip', 'random_resized_crop', 'normalize', 'instance_norm',
     'random_crop', 'random_translation', 'center_crop', 'cutout',
     'imagenet_policy', 'cifar10_policy', 'svhn_policy', 'randaugment',
-    'randaugment_fixmatch', 'randaugment2', 'gaussian_noise'
+    'randaugment_fixmatch', 'randaugment2', 'randaugment_duckie', 'gaussian_noise',
+    'zero_center', 'grayscale'
 ]
 
 
@@ -140,7 +141,12 @@ class GaussianNoise:
         noise = torch.randn(img.size()) * self.std + self.mean
         return img + noise
 
-
+class ZeroCenter():
+    def __init__(self):
+        self.zero_center = Lambda(lambda x: (x - x.min()) / (x.max() - x.min()))
+    def __call__(self, tensor):
+        return self.zero_center(tensor)
+    
 def build_transform(cfg, is_train=True, choices=None):
     """Build transformation function.
 
@@ -176,7 +182,11 @@ def build_transform(cfg, is_train=True, choices=None):
 def _build_transform_train(cfg, choices, expected_size, normalize):
     print('Building transform_train')
     tfm_train = []
-
+    
+    if 'grayscale' in choices:
+        print('+ grayscale')
+        tfm_train += [Grayscale()]
+    
     print('+ resize to {}'.format(expected_size))
     tfm_train += [Resize(cfg.INPUT.SIZE)]
 
@@ -232,6 +242,11 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
         n_ = cfg.INPUT.RANDAUGMENT_N
         print('+ randaugment2 (n={})'.format(n_))
         tfm_train += [RandAugment2(n_)]
+    
+    if 'randaugmentduckie' in choices:
+        n_ = cfg.INPUT.RANDAUGMENT_N
+        print('+ randaugmentduckie (n={})'.format(n_))
+        tfm_train += [RandAugmentDuckie(n_)]
 
     print('+ to torch tensor of range [0, 1]')
     tfm_train += [ToTensor()]
@@ -241,7 +256,11 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
         cutout_len = cfg.INPUT.CUTOUT_LEN
         print('+ cutout (n_holes={}, length={})'.format(cutout_n, cutout_len))
         tfm_train += [Cutout(cutout_n, cutout_len)]
-
+        
+    if 'zero_center' in choices:
+        print('+ zero_center')
+        tfm_train += [ZeroCenter()]
+        
     if 'normalize' in choices:
         print(
             '+ normalization (mean={}, '
@@ -256,7 +275,6 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
             )
         )
         tfm_train += [GaussianNoise(cfg.INPUT.GN_MEAN, cfg.INPUT.GN_STD)]
-
     if 'instance_norm' in choices:
         print('+ instance normalization')
         tfm_train += [InstanceNormalization()]
@@ -278,17 +296,23 @@ def _build_transform_test(cfg, choices, expected_size, normalize):
         enlarged_size = [int(x * 1.125) for x in cfg.INPUT.SIZE]
         tfm_test += [Resize(enlarged_size)]
         tfm_test += [CenterCrop(cfg.INPUT.SIZE)]
-
+    if 'grayscale' in choices:
+        print('+ grayscale')
+        tfm_test += [Grayscale()]
+    
     print('+ to torch tensor of range [0, 1]')
     tfm_test += [ToTensor()]
-
+    if 'zero_center' in choices:
+        print('+ zero_center')
+        tfm_test += [ZeroCenter()]
+        
     if 'normalize' in choices:
         print(
             '+ normalization (mean={}, '
             'std={})'.format(cfg.INPUT.PIXEL_MEAN, cfg.INPUT.PIXEL_STD)
         )
         tfm_test += [normalize]
-
+    
     if 'instance_norm' in choices:
         print('+ instance normalization')
         tfm_test += [InstanceNormalization()]

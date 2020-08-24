@@ -67,6 +67,8 @@ _C.DATASET.VAL_PERCENT = 0.1
 _C.DATASET.STL10_FOLD = -1
 # Number of stacked images for frame_stacking
 _C.DATASET.NUM_STACK = 1
+# Number of channels in data
+_C.DATASET.N_CHANNELS = 3
 
 
 ###########################

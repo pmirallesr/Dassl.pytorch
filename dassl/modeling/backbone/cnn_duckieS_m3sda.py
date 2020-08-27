@@ -48,7 +48,7 @@ class FeatureExtractor(Backbone):
 
 
 @BACKBONE_REGISTRY.register()
-def cnn_duckieS_m3sda(**kwargs):
+def cnn_duckieS_m3sda(in_channels=3, **kwargs):
     """
     """
-    return FeatureExtractor()
+    return FeatureExtractor(in_channels)

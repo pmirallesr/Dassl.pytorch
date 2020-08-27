@@ -69,9 +69,14 @@ class DAELReg(TrainerXU):
 
     def build_model(self):
         cfg = self.cfg
-
-        print('Building F')
-        self.F = SimpleNet(cfg, cfg.MODEL, 0)
+        img_channels = cfg.DATASET.N_CHANNELS
+        if 'grayscale' in cfg.INPUT.TRANSFORMS:
+            img_channels = 1
+            print("Found grayscale! Set img_channels to 1")
+            
+        backbone_in_channels = img_channels * cfg.DATASET.NUM_STACK
+        print(f'Building F with {backbone_in_channels} in channels')
+        self.F = SimpleNet(cfg, cfg.MODEL, 0, in_channels=backbone_in_channels)
         self.F.to(self.device)
         print('# params: {:,}'.format(count_num_param(self.F)))
         self.optim_F = build_optimizer(self.F, cfg.OPTIM)

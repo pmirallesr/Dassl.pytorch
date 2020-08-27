@@ -183,13 +183,13 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
     print('Building transform_train')
     tfm_train = []
     
+    print('+ resize to {}'.format(expected_size))
+    tfm_train += [Resize(cfg.INPUT.SIZE)]
+    
     if 'grayscale' in choices:
         print('+ grayscale')
         tfm_train += [Grayscale()]
     
-    print('+ resize to {}'.format(expected_size))
-    tfm_train += [Resize(cfg.INPUT.SIZE)]
-
     if 'random_flip' in choices:
         print('+ random flip')
         tfm_train += [RandomHorizontalFlip()]

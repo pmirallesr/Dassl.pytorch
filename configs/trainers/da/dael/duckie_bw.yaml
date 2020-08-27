@@ -19,5 +19,5 @@ TEST:
 
 TRAINER:
   DAEL:
-    STRONG_TRANSFORMS: ['randaugment_duckie', 'normalize']
+    STRONG_TRANSFORMS: ['randaugment_duckie', 'grayscale', 'zero_center', 'normalize']
     TASK: Regression

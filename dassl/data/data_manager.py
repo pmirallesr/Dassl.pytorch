@@ -228,9 +228,8 @@ class DatasetWrapper(TorchDataset):
             'domain': item.domain,
             'impath': item.impath
         }
-        
+        imgs = [] # List[List[tr_images]]
         if isinstance(item.impath, (list, tuple)):
-            imgs = [] # List[List[tr_images]]
             for impath in item.impath:
                 img_i0 = read_image(impath)
                 imgs.append(self.transform_item(img_i0))

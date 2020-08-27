@@ -36,11 +36,11 @@ def read_duckie_image_list(path, domain, n, num_stack=4, n_repeat=None):
 
 @DATASET_REGISTRY.register()
 class Duckie(DatasetBase):
-    version = '3.0.0'
-    dataset_dir = f'duckie/{version}'
 
     def __init__(self, cfg, nb_train=8960, nb_test=1040):
         root = osp.abspath(osp.expanduser(cfg.DATASET.ROOT))
+        version = cfg.DATASET.VERSION
+        self.dataset_dir = f'duckie/{version}'
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.domains = ['base_small', 'colors', 'colors2', 'shapes', 'shapes2', 'blurred', 'blurred2', 'textures', 'textures2','combined', 'combined2', 'real_small']
         self.check_input_domains(

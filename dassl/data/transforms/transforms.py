@@ -248,7 +248,7 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
         print('+ randaugmentduckie (n={})'.format(n_))
         tfm_train += [RandAugmentDuckie(n_)]
 
-    print('+ to torch tensor of range [0, 1]')
+    print('+ to torch tensor of from range [0,255] to range [0, 1]')
     tfm_train += [ToTensor()]
 
     if 'cutout' in choices:
@@ -258,7 +258,7 @@ def _build_transform_train(cfg, choices, expected_size, normalize):
         tfm_train += [Cutout(cutout_n, cutout_len)]
         
     if 'zero_center' in choices:
-        print('+ zero_center')
+        print('+ zero_center from range [min, max] to [0,1]')
         tfm_train += [ZeroCenter()]
         
     if 'normalize' in choices:
@@ -300,10 +300,10 @@ def _build_transform_test(cfg, choices, expected_size, normalize):
         print('+ grayscale')
         tfm_test += [Grayscale()]
     
-    print('+ to torch tensor of range [0, 1]')
+    print('+ to torch tensor from range [0,255] to range [0, 1]')
     tfm_test += [ToTensor()]
     if 'zero_center' in choices:
-        print('+ zero_center')
+        print('+ zero_center from range [min, max] to [0,1]')
         tfm_test += [ZeroCenter()]
         
     if 'normalize' in choices:

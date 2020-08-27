@@ -69,6 +69,8 @@ _C.DATASET.STL10_FOLD = -1
 _C.DATASET.NUM_STACK = 1
 # Number of channels in data
 _C.DATASET.N_CHANNELS = 3
+# Dataset version. Only useful for some datasets i.e. Duckie
+_C.DATASET.VERSION = "3.0.0"
 
 
 ###########################

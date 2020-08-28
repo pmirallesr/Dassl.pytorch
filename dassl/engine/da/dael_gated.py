@@ -45,8 +45,8 @@ class DAELGated(TrainerXU):
     """
 
     def __init__(self, cfg):
-        super().__init__(cfg)
         self.is_regressive = cfg.TRAINER.DAEL.TASK.lower() == "regression"
+        super().__init__(cfg)
         n_domain = cfg.DATALOADER.TRAIN_X.N_DOMAIN
         batch_size = cfg.DATALOADER.TRAIN_X.BATCH_SIZE
         if n_domain <= 0:

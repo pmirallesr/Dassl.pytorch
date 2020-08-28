@@ -135,6 +135,7 @@ dmypy.json
 ._*
 
 # This project
+saved_models/
 output/
 debug.sh
 debug.py

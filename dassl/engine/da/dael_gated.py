@@ -18,11 +18,11 @@ class Experts(nn.Module):
         self.linears = nn.ModuleList(
             [nn.Linear(fdim, num_classes) for _ in range(n_source)]
         )
-        self.softmax = nn.Softmax(dim=1)
+        self.sigm = nn.Sigmoid()
 
     def forward(self, i, x):
         x = self.linears[i](x)
-        x = self.softmax(x)
+        x = self.sigm(x)
         return x
 
 class Gate(nn.Module):
@@ -147,7 +147,8 @@ class DAELGated(TrainerXU):
         # Init losses
         loss_x = 0
         loss_cr = 0
-        acc_x = 0
+        if not self.is_regressive:        
+            acc_x = 0
         loss_filter = 0
         acc_filter = 0
         
@@ -163,14 +164,13 @@ class DAELGated(TrainerXU):
 
             # Learning expert
             pred_xi = self.E(i, feat_xi)
-            expert_label_xi = pred_xi.detach()
-            if self.is_regressive:
+            if self.is_regressive:            
                 loss_x += ((pred_xi - label_xi)**2).sum(1).mean()
             else:
                 loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
                 acc_x += compute_accuracy(pred_xi.detach(),
                                       label_xi.max(1)[1])[0].item()
-
+            expert_label_xi = pred_xi.detach()
             x_filter = self.G(feat_xi)
             # Filter must be 1 for expert, 0 otherwise
             filter_label = torch.Tensor([0 for _ in range(len(domain_x))]).to(self.device)

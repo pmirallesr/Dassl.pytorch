@@ -216,7 +216,10 @@ class AltDAELGated(TrainerXU):
             pred_u.append(pred_uk)
         pred_u = torch.cat(pred_u, 1).to(self.device)
         pred_u = pred_u.mean(1)
-        l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
+        if self.is_regressive:
+            l_u = (-pseudo_label_u * torch.log(pred_u + 1e-5)).sum(1)
+        else:
+            l_u = ((pseudo_label_u - pred_u)**2).sum(1).mean()
         loss_u = (l_u * label_u_mask).mean()
         
         loss = 0
@@ -282,8 +285,12 @@ class AltDAELGated(TrainerXU):
             p_k = self.E(k, f)
             p_k = p_k.unsqueeze(1)
             p.append(p_k)
-        p = torch.cat(p, 1).mean(1)
-        p = (p*g).sum(1)
+        new_g = torch.zeros(*g.shape).to(self.device)
+        for i, row in enumerate(g):
+            j_max = row.max(0)[1]
+            new_g[i,j_max] = 1
+        p = torch.cat(p, 1)
+        p = (p*new_g).sum(1)
         return p, g
     
     @torch.no_grad()

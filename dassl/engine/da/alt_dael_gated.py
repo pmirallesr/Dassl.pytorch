@@ -94,7 +94,7 @@ class AltDAELGated(TrainerXU):
         fdim = self.F.fdim
 
         print('Building E')
-        self.E = Experts(self.dm.num_source_domains, fdim, self.num_classes)
+        self.E = Experts(self.dm.num_source_domains, fdim, self.num_classes, regressive=self.is_regressive)
         self.E.to(self.device)
         print('# params: {:,}'.format(count_num_param(self.E)))
         self.optim_E = build_optimizer(self.E, cfg.OPTIM)

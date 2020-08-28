@@ -13,16 +13,19 @@ from dassl.modeling.ops.utils import create_onehot
 
 class Experts(nn.Module):
 
-    def __init__(self, n_source, fdim, num_classes):
+    def __init__(self, n_source, fdim, num_classes, regressive=False):
         super().__init__()
         self.linears = nn.ModuleList(
             [nn.Linear(fdim, num_classes) for _ in range(n_source)]
         )
-        self.sigm = nn.Sigmoid()
+        if regressive:
+            self.activation = nn.Sigmoid()
+        else:
+            self.activation = nn.Softmax(dim=1)
 
     def forward(self, i, x):
         x = self.linears[i](x)
-        x = self.sigm(x)
+        x = self.activation(x)
         return x
 
 class Gate(nn.Module):
@@ -91,7 +94,7 @@ class DAELGated(TrainerXU):
         fdim = self.F.fdim
 
         print('Building E')
-        self.E = Experts(self.dm.num_source_domains, fdim, self.num_classes)
+        self.E = Experts(self.dm.num_source_domains, fdim, self.num_classes, regressive=self.is_regressive)
         self.E.to(self.device)
         print('# params: {:,}'.format(count_num_param(self.E)))
         self.optim_E = build_optimizer(self.E, cfg.OPTIM)

@@ -117,7 +117,8 @@ class DAELReg(TrainerXU):
 
         loss_x = 0
         loss_cr = 0
-#         acc_x = 0
+        if not self.is_regressive:
+            acc_x = 0
 
         feat_x = [self.F(x) for x in input_x]
         feat_x2 = [self.F(x) for x in input_x2]
@@ -130,7 +131,12 @@ class DAELReg(TrainerXU):
 
             # Learning expert
             pred_xi = self.E(i, feat_xi)
-            loss_x += ((pred_xi - label_xi)**2).sum(1).mean()
+            if self.is_regressive:            
+                loss_x += ((pred_xi - label_xi)**2).sum(1).mean()
+            else:
+                loss_x += (-label_xi * torch.log(pred_xi + 1e-5)).sum(1).mean()
+                acc_x += compute_accuracy(pred_xi.detach(),
+                                      label_xi.max(1)[1])[0].item()
             expert_label_xi = pred_xi.detach()
 
             # Consistency regularization
@@ -145,7 +151,8 @@ class DAELReg(TrainerXU):
 
         loss_x /= self.n_domain
         loss_cr /= self.n_domain
-#         acc_x /= self.n_domain
+        if not self.is_regressive:
+            acc_x /= self.n_domain
 
         # Unsupervised loss -> None yet
         # Pending: provide a means of establishing a lead expert so that loss can be calculated
@@ -159,11 +166,11 @@ class DAELReg(TrainerXU):
 
         loss_summary = {
             'loss_x': loss_x.item(),
-#             'acc_x': acc_x,
             'loss_cr': loss_cr.item(),
 #             'loss_u': loss_u.item()
         }
-
+        if not self.is_regressive:
+            loss_summary['acc_x'] = acc_x
         if (self.batch_idx + 1) == self.num_batches:
             self.update_lr()
 
@@ -177,7 +184,10 @@ class DAELReg(TrainerXU):
         input_u = batch_u['img']
         input_u2 = batch_u['img2']
 
-        label_x = torch.cat([torch.unsqueeze(x, 1) for x in label_x], 1) #Stack list of tensors
+        if self.is_regressive:
+            label_x = torch.cat([torch.unsqueeze(x, 1) for x in label_x], 1) #Stack list of tensors
+        else:
+            label_x = create_onehot(label_x, self.num_classes)
 
         input_x = input_x.to(self.device)
         input_x2 = input_x2.to(self.device)
@@ -188,11 +198,14 @@ class DAELReg(TrainerXU):
         return input_x, input_x2, label_x, domain_x, input_u, input_u2
     
     def parse_batch_test(self, batch):
-        input = batch['img']
-        label = batch['label']
-        label = torch.cat([torch.unsqueeze(x, 1) for x in label], 1) #Stack list of tensors
-        input = input.to(self.device)
-        label = label.to(self.device)
+        if self.is_regressive:
+            input = batch['img']
+            label = batch['label']
+            label = torch.cat([torch.unsqueeze(x, 1) for x in label], 1) #Stack list of tensors
+            input = input.to(self.device)
+            label = label.to(self.device)
+        else:
+            input, label = super().parse_batch_test(batch)
 
         return input, label
 

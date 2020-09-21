@@ -211,7 +211,7 @@ class DAELGated(TrainerXU):
         if self.is_regressive:
             loss_u = ((pred_fu - pred_u)**2).sum(1).mean()
         else:
-            loss_u = (-pred_fu * torch.log(pred_u + 1e-5)).sum(1)
+            loss_u = (-pred_fu * torch.log(pred_u + 1e-5)).sum(1).mean()
         
         loss = 0
         loss += loss_x

@@ -2,7 +2,7 @@ INPUT:
   SIZE: (60, 80)
   PIXEL_MEAN: [0.5]
   PIXEL_STD: [0.5]
-  TRANSFORMS: ['grayscale', 'zero_center', 'normalize']
+  TRANSFORMS: ['grayscale', 'zero_center']
 
 DATASET:
   NAME: 'Duckie'

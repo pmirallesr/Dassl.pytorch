@@ -11,7 +11,7 @@ OPTIM:
   NAME: 'sgd'
   LR: 0.05
   STEPSIZE: [30]
-  MAX_EPOCH: 30
+  MAX_EPOCH: 24
   LR_SCHEDULER: 'cosine'
 
 TEST:
@@ -19,5 +19,5 @@ TEST:
 
 TRAINER:
   DAEL:
-    STRONG_TRANSFORMS: ['randaugment_duckie', 'grayscale', 'zero_center', 'normalize']
+    STRONG_TRANSFORMS: ['randaugment_duckie', 'grayscale', 'zero_center']
     TASK: Regression
